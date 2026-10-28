@@ -17,6 +17,7 @@ class CoinDash extends Phaser.Scene {
     this.coin = this.add.circle(100, 100, 9, c.colors.coin);
     this.physics.add.existing(this.coin);
     this.coin.body.setCircle(9);
+    this.obstacles = this.physics.add.staticGroup();
     this.placeCoin();
     this.drones = this.physics.add.group();
     for (let i = 0; i < c.droneCount; i++) {
@@ -31,7 +32,11 @@ class CoinDash extends Phaser.Scene {
       this.score++;
       window.CoinDashAudio.play('coin');
       this.placeCoin();
+      this.addObstacle();
     });
+    // Obstacles are solid walls: they block the player and drones bounce off them.
+    this.physics.add.collider(this.player, this.obstacles);
+    this.physics.add.collider(this.drones, this.obstacles);
     this.physics.add.overlap(this.player, this.drones, () => this.finish('A drone caught you!', false));
     this.cursors = this.input.keyboard.createCursorKeys();
     this.keys = this.input.keyboard.addKeys('W,A,S,D,R');
@@ -45,9 +50,36 @@ class CoinDash extends Phaser.Scene {
     do {
       x = Phaser.Math.Between(25, c.width - 25);
       y = Phaser.Math.Between(70, c.height - 25);
-    } while (Phaser.Math.Distance.Between(x, y, this.player.x, this.player.y) < 60);
+    } while (Phaser.Math.Distance.Between(x, y, this.player.x, this.player.y) < 60
+      || this.nearObstacle(x, y, c.obstacleSize + 10));
     this.coin.setPosition(x, y);
     this.coin.body.reset(x, y);
+  }
+
+  nearObstacle(x, y, distance) {
+    return this.obstacles.getChildren().some(
+      (o) => Phaser.Math.Distance.Between(x, y, o.x, o.y) < distance);
+  }
+
+  addObstacle() {
+    const c = COIN_DASH;
+    if (this.obstacles.getLength() >= c.maxObstacles) return;
+    const edge = c.obstacleSize / 2 + 30;
+    // Keep new obstacles clear of the player, the coin, the drones, each other and the
+    // walls, leaving gaps wide enough for the player and drones to pass through.
+    for (let attempt = 0; attempt < 50; attempt++) {
+      const x = Phaser.Math.Between(edge, c.width - edge);
+      const y = Phaser.Math.Between(44 + edge, c.height - edge);
+      const clear = Phaser.Math.Distance.Between(x, y, this.player.x, this.player.y) > 90
+        && Phaser.Math.Distance.Between(x, y, this.coin.x, this.coin.y) > c.obstacleSize + 10
+        && this.drones.getChildren().every(
+          (d) => Phaser.Math.Distance.Between(x, y, d.x, d.y) > 70)
+        && !this.nearObstacle(x, y, c.obstacleSize * 2);
+      if (!clear) continue;
+      const obstacle = this.add.rectangle(x, y, c.obstacleSize, c.obstacleSize, c.colors.obstacle);
+      this.obstacles.add(obstacle);
+      return;
+    }
   }
 
   update() {
