@@ -3,6 +3,10 @@
 Collect coins, avoid drones, and survive a 45-second round. Move with arrow keys or WASD;
 press R to restart. This is deliberately small so you can add features during the lab.
 
+Collecting a coin plays a short chime. Survive until the timer runs out to hear the win
+sound; getting caught by a drone plays the losing sound. Press a movement key or click
+the page to enable audio in browsers that require a user interaction.
+
 **Play it here:** https://www.avivz.net/coin-dash/
 
 ## Run it locally
@@ -38,9 +42,10 @@ laptops' JSON files together and save the combined HTML. Use the same time windo
 - `style.css`: page appearance.
 - `settings.js`: round duration, speeds, colours and dimensions.
 - `game.js`: scene, input, collisions, score and end-of-round behaviour.
+- `audio.js`: locally generated coin, win and loss sound effects.
 - `vendor/phaser-3.90.0.min.js`: the pinned Phaser runtime, byte for byte the file published at
   `https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js`; `vendor/LICENSE.phaser.txt` is its MIT licence.
 
-The game draws its own shapes; there are no image or audio assets. The authored files are under the
+The game draws its own shapes and generates its sounds; there are no image or audio assets. The authored files are under the
 MIT licence in LICENSE.txt. Phaser documentation:
 https://docs.phaser.io/phaser/getting-started/making-your-first-phaser-game
